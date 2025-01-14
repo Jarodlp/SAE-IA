@@ -10,7 +10,7 @@ public class MinMaxPlayer extends Player {
     /**
      * profondeur max pour minmax
      */
-    private final int profondeur;
+    private final int profondeurMax;
 
     /**
      * Represente un joueur
@@ -21,7 +21,7 @@ public class MinMaxPlayer extends Player {
      */
     public MinMaxPlayer(Game g, boolean player_one, int profondeur) {
         super(g, player_one);
-        this.profondeur = profondeur;
+        this.profondeurMax = profondeur;
     }
 
     @Override
@@ -29,15 +29,15 @@ public class MinMaxPlayer extends Player {
         ActionValuePair action;
         // Joueur 1 = MAX, Joueur 2 = MIN
         if (this.player == PLAYER1){
-             action = MaxValeur(state);
+             action = MaxValeur(state, 0);
         } else {
-             action = MinValeur(state);
+             action = MinValeur(state, 0);
         }
         return action.getAction();
     }
 
-    private ActionValuePair MaxValeur(GameState state) {
-        if (game.endOfGame(state)) {
+    private ActionValuePair MaxValeur(GameState state, int profondeur) {
+        if (game.endOfGame(state) || profondeur == this.profondeurMax) {
             return new ActionValuePair(null, state.getGameValue());
         }
         double Vmax = GameState.P2_WIN;
@@ -45,7 +45,7 @@ public class MinMaxPlayer extends Player {
 
         for ( Action coup : game.getActions(state)) {
             GameState stateSuivant = (GameState) game.doAction(state, coup);
-            ActionValuePair action = MinValeur(stateSuivant);
+            ActionValuePair action = MinValeur(stateSuivant, profondeur + 1);
             if (action.getValue() > Vmax) {
                 Vmax = action.getValue();
                 coupMax = coup;
@@ -56,9 +56,9 @@ public class MinMaxPlayer extends Player {
         return new ActionValuePair(coupMax, Vmax);
     }
 
-    private ActionValuePair MinValeur(GameState state) {
+    private ActionValuePair MinValeur(GameState state, int profondeur) {
 
-        if (game.endOfGame(state)) {
+        if (game.endOfGame(state) || profondeur == this.profondeurMax) {
             return new ActionValuePair(null, state.getGameValue());
         }
         double Vmin = GameState.P1_WIN;
@@ -66,7 +66,7 @@ public class MinMaxPlayer extends Player {
 
         for ( Action coup : game.getActions(state)) {
             GameState stateSuivant = (GameState) game.doAction(state, coup);
-            ActionValuePair action = MaxValeur(stateSuivant);
+            ActionValuePair action = MaxValeur(stateSuivant, profondeur + 1);
             if (action.getValue() < Vmin) {
                 Vmin = action.getValue();
                 coupMin = coup;
