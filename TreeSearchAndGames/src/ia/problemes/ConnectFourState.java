@@ -73,10 +73,163 @@ public class ConnectFourState extends AbstractMnkGameState {
      * 
      * @return la valeur du jeux pour le joueur courant 
      **/
-    public double evaluationFunction(){
-        return Double.NaN;
+    @Override
+    protected double evaluationFunction() {
+        int posX = this.possibleLines(X); // Nombre de lignes possibles pour X
+        int posO = this.possibleLines(O); // Nombre de lignes possibles pour O
+
+
+        double value = posX - posO; // Différence entre les possibilités pour X et O
+        return value;
     }
-            
+
+    // Compte le nombre de lignes possibles pour un joueur donné
+    private int possibleLines(int player) {
+
+
+        return this.possibleVerticalLines(player) +
+                this.possibleHorizontalLines(player) +
+                this.possibleDiagonalLines(player);
+    }
+
+    // Compte le nombre de lignes verticales possibles pour un joueur donné
+    private int possibleVerticalLines(int player) {
+        int res = 0;
+
+        for (int col = 0; col < this.cols; col++) {
+            // Vérifier si la colonne est jouable
+            if (!this.isLegal(col)) {
+                continue;
+            }
+
+            for (int row = 0; row <= this.rows - this.streak; row++) {
+                int counter = 0;
+
+                for (int k = 0; k < this.streak; k++) {
+                    char cell = this.getValueAt(row + k, col);
+
+                    if (cell == this.otherPlayer(player)) {
+                        counter = 0;
+                        break; // Ligne bloquée
+                    } else if (cell == player || cell == EMPTY) {
+                        counter++;
+                    }
+                }
+
+                if (counter > 0) res++; // Ligne verticale possible trouvée
+            }
+        }
+
+        return res;
+    }
+
+    // Compte le nombre de lignes horizontales possibles pour un joueur donné
+    private int possibleHorizontalLines(int player) {
+        int res = 0;
+
+        for (int row = 0; row < this.rows; row++) {
+            for (int col = 0; col <= this.cols - this.streak; col++) {
+                // Vérifier si au moins une colonne est jouable dans cette séquence
+                boolean legalFound = false;
+                for (int k = 0; k < this.streak; k++) {
+                    if (this.isLegal(col + k)) {
+                        legalFound = true;
+                        break;
+                    }
+                }
+
+                if (!legalFound) continue;
+
+                int counter = 0;
+
+                for (int k = 0; k < this.streak; k++) {
+                    char cell = this.getValueAt(row, col + k);
+
+                    if (cell == this.otherPlayer(player)) {
+                        counter = 0;
+                        break; // Ligne bloquée
+                    } else if (cell == player || cell == EMPTY) {
+                        counter++;
+                    }
+                }
+
+                if (counter > 0) res++; // Ligne horizontale possible trouvée
+            }
+        }
+
+        return res;
+    }
+
+    // Compte le nombre de lignes diagonales possibles pour un joueur donné
+    private int possibleDiagonalLines(int player) {
+        int res = 0;
+
+        // Diagonales montantes (\)
+        for (int row = 0; row <= this.rows - this.streak; row++) {
+            for (int col = 0; col <= this.cols - this.streak; col++) {
+                // Vérifier si au moins une colonne est jouable dans cette séquence
+                boolean legalFound = false;
+                for (int k = 0; k < this.streak; k++) {
+                    if (this.isLegal(col + k)) {
+                        legalFound = true;
+                        break;
+                    }
+                }
+
+                if (!legalFound) continue;
+
+                int counter = 0;
+
+                for (int k = 0; k < this.streak; k++) {
+                    char cell = this.getValueAt(row + k, col + k);
+
+                    if (cell == this.otherPlayer(player)) {
+                        counter = 0;
+                        break; // Ligne bloquée
+                    } else if (cell == player || cell == EMPTY) {
+                        counter++;
+                    }
+                }
+
+                if (counter > 0) res++; // Ligne diagonale montante possible trouvée
+            }
+        }
+
+        // Diagonales descendantes (/)
+        for (int row = this.streak - 1; row < this.rows; row++) {
+            for (int col = 0; col <= this.cols - this.streak; col++) {
+                // Vérifier si au moins une colonne est jouable dans cette séquence
+                boolean legalFound = false;
+                for (int k = 0; k < this.streak; k++) {
+                    if (this.isLegal(col + k)) {
+                        legalFound = true;
+                        break;
+                    }
+                }
+
+                if (!legalFound) continue;
+
+                int counter = 0;
+
+                for (int k = 0; k < this.streak; k++) {
+                    char cell = this.getValueAt(row - k, col + k);
+
+                    if (cell == this.otherPlayer(player)) {
+                        counter = 0;
+                        break; // Ligne bloquée
+                    } else if (cell == player || cell == EMPTY) {
+                        counter++;
+                    }
+                }
+
+                if (counter > 0) res++; // Ligne diagonale descendante possible trouvée
+            }
+        }
+
+        return res;
+    }
+
+
     // l'API privée 
         
 	/**
