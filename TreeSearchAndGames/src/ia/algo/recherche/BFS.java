@@ -78,6 +78,6 @@ public class BFS extends TreeSearch {
             }
         }
 
-        return false;  // Si la frontière est vide et que l'objectif n'est pas atteint
+        return false;
     }
 }
