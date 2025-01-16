@@ -287,10 +287,10 @@ public class ArgParse {
                 return new DFS(p,s);
             case "ucs":
                 return new UCS(p,s);
-            //case "gfs":
-            //return new GFS(p,s);
-            //case "astar":
-            //return new AStar(p,s);
+            case "gfs":
+                return new GFS(p,s);
+            case "astar":
+                return new Astar(p,s);
             default:
                 System.out.println("Algorithme inconnu");
                 usage();

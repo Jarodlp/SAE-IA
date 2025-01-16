@@ -42,7 +42,6 @@ public class UCS extends TreeSearch {
                 State newState = child.getState();
                 double newCost = child.getCost();
 
-                // Check if this state is not visited or if a better cost is found
                 if (!costs.containsKey(newState) || newCost < costs.get(newState)) {
                     costs.put(newState, newCost);
                     frontier.add(child);
