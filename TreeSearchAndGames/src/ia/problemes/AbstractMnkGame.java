@@ -60,6 +60,10 @@ public abstract class AbstractMnkGame extends Game {
     * retourne la nouvelle grille après l'action</p>
     */
     public State doAction(State s, Action a){
+        if (a == null){
+            Action nouvelle_action = getActions(s).get(Math.round((float)Math.random()*(getActions(s).size()-1)));
+            a = nouvelle_action;
+        }
         AbstractMnkGameState new_s = (AbstractMnkGameState) s.clone();
         int action_idx = Integer.parseInt(a.getName());
         new_s.play(action_idx);

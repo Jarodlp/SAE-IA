@@ -25,7 +25,7 @@ public class LancerJeux {
              + "[-k entier] "
              + "[-v] [-h]\n\n"
              + "-game : Le nom du jeux {tictactoe, connect4, gomoku, mnk}. Par défautl tictactoe\n"
-             + "-p1/2 : L'agorithme joueur {random, human, minmax, alphabeta}. Par défaut rnd pour les deux\n"
+             + "-p1/2 : L'agorithme joueur {random, human, minmax, alphabeta, danger}. Par défaut rnd pour les deux\n"
              + "-d    : La profondeur max pour minmax ou alphabeta. Par défaut sans limite\n"
              + "-s    : La taille du jeux Mnk sXs. Par défaut 5x5\n"
              + "-k    : La taille d'une ligne gagnante au Mnk. Par défaut s-1\n"

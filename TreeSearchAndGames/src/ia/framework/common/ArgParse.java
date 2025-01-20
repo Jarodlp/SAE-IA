@@ -255,6 +255,8 @@ public class ArgParse {
             case "alphabeta":
                 return new AlphaBetaPlayer(game, is_p1,
                         getValueOfParam(args, "-d", -1));
+            case "danger":
+                return new DangerPlayer(game, is_p1);
             default:
                 System.out.println("Joueur inconnu");
                 usage();
@@ -282,15 +284,15 @@ public class ArgParse {
             case "rnd":
                 return new RandomTreeSearch(p, s);
             case "bfs":
-                return new BFS(p,s);
-                case "dfs":
-                return new DFS(p,s);
+                return new BFS(p, s);
+            case "dfs":
+                return new DFS(p, s);
             case "ucs":
-                return new UCS(p,s);
+                return new UCS(p, s);
             case "gfs":
-                return new GFS(p,s);
+                return new GFS(p, s);
             case "astar":
-                return new Astar(p,s);
+                return new Astar(p, s);
             default:
                 System.out.println("Algorithme inconnu");
                 usage();
