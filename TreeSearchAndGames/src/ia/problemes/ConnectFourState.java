@@ -75,123 +75,186 @@ public class ConnectFourState extends AbstractMnkGameState {
      **/
     @Override
     protected double evaluationFunction() {
-        int lignesX = this.possibleLines(X); // Nombre de lignes possibles pour X
-        int lignesO = this.possibleLines(O); // Nombre de lignes possibles pour O
+        int scoreJoueur = weightedPossibleLines(X) + centerWeightedScore(X);
+        int scoreAdversaire = weightedPossibleLines(O) + centerWeightedScore(O);
 
-
-        double value = lignesX - lignesO; // Différence entre les possibilités pour X et O
-        return value;
+        // Calcul final : avantage du joueur - avantage de l'adversaire
+        return scoreJoueur - scoreAdversaire;
     }
 
-    // Compte le nombre de lignes possibles pour un joueur donné
-    private int possibleLines(int player) {
-
-
-        return this.possibleVerticalLines(player) +
-                this.possibleHorizontalLines(player) +
-                this.possibleDiagonalLines(player);
-    }
-
-    // Compte le nombre de lignes verticales possibles pour un joueur donné
-    private int possibleVerticalLines(int player) {
-        int res = 0;
-
-        for (int col = 0; col < this.cols; col++) {
-            for (int row = 0; row <= this.rows - this.streak; row++) {
-                boolean isAligned = true;
-
-                for (int k = 0; k < this.streak; k++) {
-                    char cell = this.getValueAt(row + k, col);
-                    if (cell != player) {
-                        isAligned = false;
-                        break;
-                    }
-                }
-
-                if (isAligned) res++;
-            }
-        }
-
-        return res;
-    }
-
-
-    // Compte le nombre de lignes horizontales possibles pour un joueur donné
-    private int possibleHorizontalLines(int player) {
-        int res = 0;
+    private int centerWeightedScore(int player) {
+        int score = 0;
+        int centerColumn = this.cols / 2;
 
         for (int row = 0; row < this.rows; row++) {
-            for (int col = 0; col <= this.cols - this.streak; col++) {
-                boolean isAligned = true;
+            for (int col = 0; col < this.cols; col++) {
+                char cell = this.getValueAt(row, col);
 
-                for (int k = 0; k < this.streak; k++) {
+                if (cell == player) {
+                    // Ajouter une pondération pour les positions centrales
+                    int distanceToCenter = Math.abs(centerColumn - col);
+                    score += (this.cols - distanceToCenter); // Plus proche du centre = score plus élevé
+                }
+            }
+        }
+
+        return score;
+    }
+
+
+    private int weightedPossibleLines(int player) {
+        int score = 0;
+        score += countAlignments(player, 4) * 1000; // Ligne complète = victoire
+        score += countAlignments(player, 3) * 50;  // Ligne de 3 = potentiellement décisif
+        score += countAlignments(player, 2) * 5;       // Ligne de 2 = potentiel futur
+        return score;
+    }
+
+    // Méthode principale pour compter les alignements et leur potentiel
+    private int countAlignments(int player, int length) {
+        return countHorizontalAlignments(player, length) +
+                countVerticalAlignments(player, length) +
+                countDiagonalAlignments(player, length);
+    }
+
+    // Compter les alignements horizontaux avec potentiel
+    private int countHorizontalAlignments(int player, int length) {
+        int count = 0;
+
+        for (int row = 0; row < this.rows; row++) {
+            for (int col = 0; col <= this.cols - length; col++) {
+                int playerCells = 0;
+                int emptyCells = 0;
+
+                for (int k = 0; k < length; k++) {
                     char cell = this.getValueAt(row, col + k);
 
-                    // Vérifier si la cellule appartient bien au joueur et que la gravité est respectée
-                    if (cell != player || (row < this.rows - 1 && this.getValueAt(row + 1, col + k) == EMPTY)) {
-                        isAligned = false;
+                    if (cell == player) {
+                        playerCells++;
+                    } else if (cell == EMPTY) {
+                        emptyCells++;
+                    } else {
+                        // Une cellule adverse bloque l'alignement
+                        playerCells = 0;
+                        emptyCells = 0;
                         break;
                     }
                 }
 
-                if (isAligned) res++;
+                // Un alignement est valable s'il contient des jetons du joueur et des cellules vides
+                if (playerCells > 0 && emptyCells > 0) {
+                    count++;
+                }
             }
         }
 
-        return res;
+        return count;
     }
 
-    // Compte le nombre de lignes diagonales possibles pour un joueur donné
-    private int possibleDiagonalLines(int player) {
-        return possibleDiagonalLinesUp(player) + possibleDiagonalLinesDown(player);
+    // Compter les alignements verticaux avec potentiel
+    private int countVerticalAlignments(int player, int length) {
+        int count = 0;
+
+        for (int col = 0; col < this.cols; col++) {
+            for (int row = 0; row <= this.rows - length; row++) {
+                int playerCells = 0;
+                int emptyCells = 0;
+
+                for (int k = 0; k < length; k++) {
+                    char cell = this.getValueAt(row + k, col);
+
+                    if (cell == player) {
+                        playerCells++;
+                    } else if (cell == EMPTY) {
+                        emptyCells++;
+                    } else {
+                        // Une cellule adverse bloque l'alignement
+                        playerCells = 0;
+                        emptyCells = 0;
+                        break;
+                    }
+                }
+
+                // Un alignement est valable s'il contient des jetons du joueur et des cellules vides
+                if (playerCells > 0 && emptyCells > 0) {
+                    count++;
+                }
+            }
+        }
+
+        return count;
     }
 
-    private int possibleDiagonalLinesUp(int player) {
-        int res = 0;
+    // Compter les alignements diagonaux avec potentiel
+    private int countDiagonalAlignments(int player, int length) {
+        return countDiagonalAlignmentsUp(player, length) +
+                countDiagonalAlignmentsDown(player, length);
+    }
 
-        for (int row = 0; row <= this.rows - this.streak; row++) {
-            for (int col = 0; col <= this.cols - this.streak; col++) {
-                boolean isAligned = true;
+    // Compter les diagonales montantes (↗) avec potentiel
+    private int countDiagonalAlignmentsUp(int player, int length) {
+        int count = 0;
 
-                for (int k = 0; k < this.streak; k++) {
+        for (int row = 0; row <= this.rows - length; row++) {
+            for (int col = 0; col <= this.cols - length; col++) {
+                int playerCells = 0;
+                int emptyCells = 0;
+
+                for (int k = 0; k < length; k++) {
                     char cell = this.getValueAt(row + k, col + k);
 
-                    // Vérifier si la cellule appartient bien au joueur et que la gravité est respectée
-                    if (cell != player || (row + k < this.rows - 1 && this.getValueAt(row + k + 1, col + k) == EMPTY)) {
-                        isAligned = false;
+                    if (cell == player) {
+                        playerCells++;
+                    } else if (cell == EMPTY) {
+                        emptyCells++;
+                    } else {
+                        // Une cellule adverse bloque l'alignement
+                        playerCells = 0;
+                        emptyCells = 0;
                         break;
                     }
                 }
 
-                if (isAligned) res++;
+                if (playerCells > 0 && emptyCells > 0) {
+                    count++;
+                }
             }
         }
 
-        return res;
+        return count;
     }
 
-    private int possibleDiagonalLinesDown(int player) {
-        int res = 0;
+    // Compter les diagonales descendantes (↘) avec potentiel
+    private int countDiagonalAlignmentsDown(int player, int length) {
+        int count = 0;
 
-        for (int row = this.streak - 1; row < this.rows; row++) {
-            for (int col = 0; col <= this.cols - this.streak; col++) {
-                boolean isAligned = true;
+        for (int row = length - 1; row < this.rows; row++) {
+            for (int col = 0; col <= this.cols - length; col++) {
+                int playerCells = 0;
+                int emptyCells = 0;
 
-                for (int k = 0; k < this.streak; k++) {
+                for (int k = 0; k < length; k++) {
                     char cell = this.getValueAt(row - k, col + k);
 
-                    // Vérifier si la cellule appartient bien au joueur et que la gravité est respectée
-                    if (cell != player || (row - k < this.rows - 1 && this.getValueAt(row - k + 1, col + k) == EMPTY)) {
-                        isAligned = false;
+                    if (cell == player) {
+                        playerCells++;
+                    } else if (cell == EMPTY) {
+                        emptyCells++;
+                    } else {
+                        // Une cellule adverse bloque l'alignement
+                        playerCells = 0;
+                        emptyCells = 0;
                         break;
                     }
                 }
 
-                if (isAligned) res++;
+                if (playerCells > 0 && emptyCells > 0) {
+                    count++;
+                }
             }
         }
 
-        return res;
+        return count;
     }
 
 
