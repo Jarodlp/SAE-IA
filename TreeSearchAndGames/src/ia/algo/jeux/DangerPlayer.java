@@ -26,24 +26,20 @@ public class DangerPlayer extends Player {
             GameState stateSuivant = (GameState) game.doAction(state, coup);
 
             if (stateSuivant.isFinalState()){
-                System.out.println("fin frérot");
                 return coup;
             }
 
             for (Action coupAdverse : game.getActions(stateSuivant)) {
                 GameState stateAdverse = (GameState) game.doAction(stateSuivant, coupAdverse);
-                if (game.endOfGame(stateAdverse)) {
-                    System.out.println("no troll");
+                if (game.endOfGame(stateAdverse) && stateAdverse.getGameValue() != 0) {
                     return coupAdverse;
                 }
             }
 
             double danger = stateSuivant.getGameValue();
-            System.out.println("Danger: " + danger + " pour le coup " + coup);
             if (this.player == PLAYER1 && danger > meilleurDanger || this.player == PLAYER2 && danger < meilleurDanger) {
                 meilleurDanger = danger;
                 meilleurCoup = coup;
-                System.out.println("Meilleur coup: " + meilleurCoup + " avec danger: " + meilleurDanger);
             }
             incStateCounter();
         }
