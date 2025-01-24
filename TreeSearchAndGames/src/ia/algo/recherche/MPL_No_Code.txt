@@ -1,0 +1,34 @@
+Nbentrée : int -> nombre de neuronnes entrée
+NbCachée : int -> nombre de neuronnes caché
+NbSortie : int -> nombre de neuronnes en sortie
+
+fonction Mlp(NbCntrée, NbCachée, NbSortie, entrees, sortieVoulus)
+
+Début :
+
+    // On initialise les paramètres
+   couches <- (NbEntrée, NbCachée, NbSortie)
+   tauxApprentissage <- 0.01 // ou un autre taux
+   fonctionTransfert <- sigmoid // Ou une autre fonciton de transfert
+
+   perceptron <- Mlp(couches, tauxApprentissage, fonctionTransfert)
+
+   nbErreur <- 0;
+   iteration <- 1000
+   i <- 0
+
+   tant que i < iterations faire
+        nbErreur <- 0
+        pour chaque (entree, sortieVoulu) dans (entrees, sortieVoulus) faire
+            erreur <- perceptron.backPropagate(entree, sortieVoulu)
+            nbErreur <- nbErreur + erreur
+        fin pour
+        i <- i + 1
+   fin tant
+
+   // Ensuite on test
+   entreeTest <- [des données de test]
+   sortie_predite <- perceptron.execute(entreeTest)
+   Print(l'entrée test, la sortie prédite)
+
+Fin
