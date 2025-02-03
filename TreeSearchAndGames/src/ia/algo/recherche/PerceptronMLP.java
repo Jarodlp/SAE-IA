@@ -12,80 +12,66 @@ public class PerceptronMLP {
     public static void mlp(int[] layers, double learningRate, TransferFunction fun, double[][] entree, double[][] sortieVoulu) {
         MLP mlp = new MLP(layers, learningRate, fun);
 
-        double totalErreur = 0;  // Utiliser un double pour l'erreur totale
+        double totalErreur;
         int maxIteration = 1000000;
         int i = 0;
+        double tolerance = 0.05;
 
-        // Mélanger les données avant de commencer l'entraînement
-        List<double[]> inputsList = new ArrayList<>();
-        List<double[]> outputsList = new ArrayList<>();
-        for (int j = 0; j < entree.length; j++) {
-            inputsList.add(entree[j]);
-            outputsList.add(sortieVoulu[j]);
-        }
+        List<double[]> inputsList = new ArrayList<>(Arrays.asList(entree));
+        List<double[]> outputsList = new ArrayList<>(Arrays.asList(sortieVoulu));
 
-        // Mélanger les entrées et sorties de manière synchrone
         List<Integer> indices = new ArrayList<>(IntStream.range(0, entree.length).boxed().toList());
         Collections.shuffle(indices);
 
-        // Réorganiser les entrées et sorties selon les indices mélangés
-        List<double[]> shuffledInputs = new ArrayList<>();
-        List<double[]> shuffledOutputs = new ArrayList<>();
-        for (int idx : indices) {
-            shuffledInputs.add(inputsList.get(idx));
-            shuffledOutputs.add(outputsList.get(idx));
-        }
-
-        // Convertir les listes mélangées en tableaux 2D
-        double[][] shuffledEntree = new double[shuffledInputs.size()][];  // Entrées mélangées
-        double[][] shuffledSortie = new double[shuffledOutputs.size()][]; // Sorties mélangées
-        for (int j = 0; j < shuffledInputs.size(); j++) {
-            shuffledEntree[j] = shuffledInputs.get(j);
-            shuffledSortie[j] = shuffledOutputs.get(j);
+        double[][] shuffledEntree = new double[entree.length][];
+        double[][] shuffledSortie = new double[sortieVoulu.length][];
+        for (int j = 0; j < indices.size(); j++) {
+            shuffledEntree[j] = inputsList.get(indices.get(j));
+            shuffledSortie[j] = outputsList.get(indices.get(j));
         }
 
         while (i < maxIteration) {
-            totalErreur = 0; // Réinitialiser l'erreur totale pour chaque itération
+            totalErreur = 0;
+            boolean convergence = true;
 
             for (int j = 0; j < shuffledEntree.length; j++) {
                 double[] input = shuffledEntree[j];
                 double[] outputVoulu = shuffledSortie[j];
-
-                // Exécution du perceptron pour l'entrée donnée
                 double[] output = mlp.execute(input);
 
-                // Calcul de l'erreur quadratique
                 double erreur = 0;
                 for (int k = 0; k < outputVoulu.length; k++) {
+                    if (Math.abs(outputVoulu[k] - output[k]) > tolerance) {
+                        convergence = false;
+                    }
                     erreur += Math.pow(outputVoulu[k] - output[k], 2);
                 }
-                totalErreur += erreur;  // Ajouter l'erreur de cet exemple à l'erreur totale
+                totalErreur += erreur;
 
-                // Backpropagation de l'erreur pour ajuster les poids
                 mlp.backPropagate(input, outputVoulu);
-
-                // Log des résultats de l'exécution de chaque exemple
-                System.out.println("Exemple " + (j + 1) + ": Entrée = " + Arrays.toString(input) + ", Sortie attendue = " + Arrays.toString(outputVoulu) + ", Sortie générée = " + Arrays.toString(output) + ", Erreur = " + erreur);
             }
 
-            // Log de l'erreur totale pour l'itération actuelle
             System.out.println("Erreur totale à l'itération " + i + ": " + totalErreur);
+            for (int j = 0; j < shuffledEntree.length; j++) {
+                double[] output = mlp.execute(shuffledEntree[j]);
+                double[] expectedOutput = shuffledSortie[j]; // Capture la valeur de shuffledSortie[j]
 
-            // Vérifier si l'erreur totale est suffisamment faible (convergence)
-            if (totalErreur == 0) {
-                System.out.println("Tous les exemples ont été correctement classifiés.");
+                System.out.println("Exemple " + (j + 1) + ": Entrée = " + Arrays.toString(shuffledEntree[j]) +
+                        ", Sortie attendue = " + Arrays.toString(expectedOutput) +
+                        ", Sortie générée = " + Arrays.toString(output) +
+                        ", Erreur = " + Arrays.toString(Arrays.stream(output)
+                        .map(k -> Math.pow(k - expectedOutput[0], 2)) // Utilisation de expectedOutput
+                        .toArray()));
+            }
+
+
+            if (convergence) {
+                System.out.println("Le modèle a convergé avec une tolérance de " + tolerance);
                 break;
             }
-
-            // Log l'erreur à chaque itération (optionnel)
-            if (i % 100 == 0) {
-                System.out.println("Erreur à l'itération " + i + ": " + totalErreur);
-            }
-
             i++;
         }
 
-        // Log final si l'apprentissage a terminé
         if (i >= maxIteration) {
             System.out.println("Le nombre maximal d'itérations a été atteint.");
         }
@@ -94,35 +80,16 @@ public class PerceptronMLP {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
-        boolean funOk = false;
         TransferFunction transferFunction = null;
-        while (!funOk) {
+        while (transferFunction == null) {
             System.out.println("Choisir la fonction de transfert (1: Sigmoid, 2: Hyperbolique): ");
             int choice = scanner.nextInt();
 
-            if (choice == 1) {
-                transferFunction = new Sigmoide();
-                funOk = true;
-            } else if (choice == 2) {
-                transferFunction = new Hyperbolique();
-                funOk = true;
-            } else {
-                System.out.println("Veuillez choisir 1 (Sigmoide) ou 2 (Hyperbolique)");
-            }
+            if (choice == 1) transferFunction = new Sigmoide();
+            else if (choice == 2) transferFunction = new Hyperbolique();
+            else System.out.println("Veuillez choisir 1 (Sigmoide) ou 2 (Hyperbolique)");
         }
 
-        System.out.println();
-
-        boolean sortOk = false;
-        int dimSortie = Integer.MAX_VALUE;
-        while (!sortOk) {
-            System.out.println("Choisir maintenant la dimension de sortie (1 : 1D, 2: 2D)");
-            dimSortie = scanner.nextInt();
-            if (dimSortie == 1 || dimSortie == 2)
-                sortOk = true;
-        }
-
-        System.out.println();
         System.out.println("Choisir le taux d'apprentissage (ex: 0.1, 0.5, 0.6)");
         double learningRate = scanner.nextDouble();
 
@@ -137,24 +104,23 @@ public class PerceptronMLP {
         double[][] xorInputs = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
         double[][] xorExpectedOutputs = {{0}, {1}, {1}, {0}};
 
-        int prob = Integer.MAX_VALUE;
-        if (dimSortie == 1) {
-            System.out.println("Choisir le problème (1: AND, 2: OR, 3: XOR)");
-            prob = scanner.nextInt();
-            switch (prob) {
-                case 1:
-                    System.out.println("Lancement du perceptron pour la table AND");
-                    mlp(layers, learningRate, transferFunction, andInputs, andExpectedOutputs);
-                    break;
-                case 2:
-                    System.out.println("Lancement du perceptron pour la table OR");
-                    mlp(layers, learningRate, transferFunction, orInputs, orExpectedOutputs);
-                    break;
-                case 3:
-                    System.out.println("Lancement du perceptron pour la table XOR");
-                    mlp(layers, learningRate, transferFunction, xorInputs, xorExpectedOutputs);
-                    break;
+        System.out.println("Choisir le problème (1: AND, 2: OR, 3: XOR)");
+        int prob = scanner.nextInt();
+
+        switch (prob) {
+            case 1 -> {
+                System.out.println("Lancement du perceptron pour la table AND");
+                mlp(layers, learningRate, transferFunction, andInputs, andExpectedOutputs);
             }
+            case 2 -> {
+                System.out.println("Lancement du perceptron pour la table OR");
+                mlp(layers, learningRate, transferFunction, orInputs, orExpectedOutputs);
+            }
+            case 3 -> {
+                System.out.println("Lancement du perceptron pour la table XOR");
+                mlp(layers, learningRate, transferFunction, xorInputs, xorExpectedOutputs);
+            }
+            default -> System.out.println("Choix invalide");
         }
     }
 }
