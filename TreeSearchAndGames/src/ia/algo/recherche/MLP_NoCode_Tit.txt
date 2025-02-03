@@ -1,0 +1,40 @@
+// 1. Configuration du MLP
+
+entier[] layers = [2, 3, 1] //On définit la structure du réseau
+double learningRate = 0.6 // On définit le learning rate
+TransferFunction tf = new Sigmoid() // On définit la fonction de transfert
+MLP perceptron = nouveau MLP(layers, learningRate, tf) //On construit l'objet avec tous les paramètres qu'on vient de choisir
+
+// 2. Lancement de l'apprentissage sur un exemple (ici la table OU)
+trainingSet = [
+    ( [0,0], [0] ),
+    ( [0,1], [1] ),
+    ( [1,0], [1] ),
+    ( [1,1], [1] )
+]
+
+boolean goodOutput = false
+
+pour epoch de 1 à 1000 faire
+    réel cumulErreur = 0.0
+    pour chaque paire(X,Y) dans trainingSet faire
+        cumulErreur += perceptron.backPropagate(X, Y) //On boucle sur chaque paire d'input/output de notre exemple qu'on donne à la fonction backpropagate,
+                                                      // qui va calculer l'erreur et ajuster les données du réseau.
+        si (epoch % 10 == 0) alors  //Toutes les 10 itérations, on teste
+            double[] output = perceptron.execute(X)
+            print("Entrée : X, sortie : output[0]"
+            si (output == Y) alors
+                goodOutput = true
+            sinon
+                goodOutput = false
+            fsi
+        fsi
+
+    si conditionArret OU goodOutput alors  // On choisit une condition d'arrêt (test réussi ou nombre défini de passage des exemples)
+        interrompre
+
+// 4. Test
+testSet = [ [0,0], [0,1], [1,0], [1,1] ]
+pour chaque X dans testSet faire
+    double[] res = perceptron.execute(X)
+    afficher("entrée = X, sortie = res")
