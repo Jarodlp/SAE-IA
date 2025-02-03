@@ -13,7 +13,7 @@ public class PerceptronMLP {
         MLP mlp = new MLP(layers, learningRate, fun);
 
         double totalErreur;
-        int maxIteration = 1000000;
+        int maxIteration = 100000;
         int i = 0;
         double tolerance = 0.05;
 
